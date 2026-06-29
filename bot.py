@@ -1,5 +1,7 @@
-from telegram import Update
+```python
+from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from openpyxl import Workbook
 import pymysql
 import os
 from datetime import datetime
@@ -12,7 +14,7 @@ def get_db():
         user=os.getenv("MYSQLUSER"),
         password=os.getenv("MYSQLPASSWORD"),
         database=os.getenv("MYSQLDATABASE"),
-        port=int(os.getenv("MYSQLPORT", "3306")),
+        port=int(os.getenv("MYSQLPORT", "3306"))
     )
 
 def init_db():
@@ -34,7 +36,14 @@ def init_db():
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "✅ Kirim-Chiqim bot tayyor.\n\nMisollar:\n gaz 120300\n savdo 1500000\n\nBuyruqlar:\n/balans\n/hisobot"
+        "✅ Kirim-Chiqim bot tayyor!\n\n"
+        "Misollar:\n"
+        "gaz 120300\n"
+        "savdo 1500000\n\n"
+        "Buyruqlar:\n"
+        "/balans\n"
+        "/hisobot\n"
+        "/excel"
     )
 
 async def balans(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -50,7 +59,9 @@ async def balans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
 
     await update.message.reply_text(
-        f"💰 Kirim: {kirim:,}\n💸 Chiqim: {chiqim:,}\n📊 Balans: {kirim-chiqim:,}"
+        f"💰 Kirim: {kirim:,} so'm\n"
+        f"💸 Chiqim: {chiqim:,} so'm\n"
+        f"📊 Balans: {kirim-chiqim:,} so'm"
     )
 
 async def hisobot(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -71,12 +82,42 @@ async def hisobot(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Ma'lumot yo'q.")
         return
 
-    text = "📋 Oxirgi yozuvlar:\n\n"
+    text = "📋 Oxirgi 10 ta yozuv:\n\n"
 
     for nomi, turi, summa in rows:
         text += f"{turi.upper()} | {nomi} | {summa:,}\n"
 
     await update.message.reply_text(text)
+
+async def excel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT sana,turi,nomi,summa
+        FROM transactions
+        ORDER BY id DESC
+    """)
+
+    rows = cur.fetchall()
+    conn.close()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Kirim-Chiqim"
+
+    ws.append(["Sana", "Turi", "Nomi", "Summa"])
+
+    for row in rows:
+        ws.append(list(row))
+
+    file_name = "kirim_chiqim.xlsx"
+    wb.save(file_name)
+
+    await update.message.reply_document(
+        document=InputFile(file_name),
+        filename="kirim_chiqim.xlsx"
+    )
 
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message.text.strip()
@@ -91,6 +132,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         summa = int(parts[-1].replace(".", "").replace(",", ""))
     except:
+        await update.message.reply_text("❌ Summani noto'g'ri kiritdingiz.")
         return
 
     kirim_sozlar = [
@@ -123,7 +165,10 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
 
     await update.message.reply_text(
-        f"✅ Saqlandi\n\nTuri: {turi}\nNomi: {nomi}\nSumma: {summa:,}"
+        f"✅ Saqlandi\n\n"
+        f"Turi: {turi}\n"
+        f"Nomi: {nomi}\n"
+        f"Summa: {summa:,} so'm"
     )
 
 init_db()
@@ -133,6 +178,10 @@ app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("balans", balans))
 app.add_handler(CommandHandler("hisobot", hisobot))
+app.add_handler(CommandHandler("excel", excel))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
+print("✅ Tekin Kirim-Chiqim Bot ishga tushdi!")
+
 app.run_polling()
+```
