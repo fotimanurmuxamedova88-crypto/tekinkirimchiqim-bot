@@ -113,8 +113,9 @@ async def excel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file_name = "kirim_chiqim.xlsx"
     wb.save(file_name)
 
+   with open("kirim_chiqim.xlsx", "rb") as f:
     await update.message.reply_document(
-        document=InputFile(file_name),
+        document=f,
         filename="kirim_chiqim.xlsx"
     )
 
