@@ -18,7 +18,7 @@ def init_db():
 conn = get_db()
 cur = conn.cursor()
 
-
+```
 cur.execute("""
 CREATE TABLE IF NOT EXISTS transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 conn.commit()
 conn.close()
+```
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 await update.message.reply_text(
 "✅ Kirim-Chiqim bot ishlayapti!\n\n"
