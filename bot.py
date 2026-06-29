@@ -1,4 +1,3 @@
-```python
 from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from openpyxl import Workbook
@@ -184,4 +183,3 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 print("✅ Tekin Kirim-Chiqim Bot ishga tushdi!")
 
 app.run_polling()
-```
