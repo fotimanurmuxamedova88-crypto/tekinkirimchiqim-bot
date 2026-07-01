@@ -80,3 +80,47 @@ async def excel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             document=f,
             filename="kirim_chiqim.xlsx"
         )
+
+async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message.text.strip()
+
+    parts = msg.split()
+
+    if len(parts) < 2:
+        return
+
+    nomi = " ".join(parts[:-1])
+
+    try:
+        summa = int(parts[-1].replace(",", ""))
+    except:
+        await update.message.reply_text("❌ Summa noto'g'ri.")
+        return
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO transactions (nomi, summa) VALUES (%s, %s)",
+        (nomi, summa)
+    )
+
+    conn.commit()
+    conn.close()
+
+    await update.message.reply_text(
+        f"✅ Saqlandi\n{nomi} - {summa:,} so'm"
+    )
+
+init_db()
+
+app = ApplicationBuilder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("balans", balans))
+app.add_handler(CommandHandler("excel", excel))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
+
+print("✅ Bot ishga tushdi")
+
+app.run_polling()
