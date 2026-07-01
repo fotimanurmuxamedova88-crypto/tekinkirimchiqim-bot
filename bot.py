@@ -6,7 +6,7 @@ import os
 TOKEN = os.getenv("BOT_TOKEN")
 
 def get_db():
-return pymysql.connect(
+    return pymysql.connect(
 host=os.getenv("MYSQLHOST"),
 user=os.getenv("MYSQLUSER"),
 password=os.getenv("MYSQLPASSWORD"),
@@ -15,10 +15,9 @@ port=int(os.getenv("MYSQLPORT", "3306"))
 )
 
 def init_db():
-conn = get_db()
+    conn = get_db()
 cur = conn.cursor()
 
-```
 cur.execute("""
 CREATE TABLE IF NOT EXISTS transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,7 +28,6 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 conn.commit()
 conn.close()
-```
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 await update.message.reply_text(
@@ -42,7 +40,7 @@ await update.message.reply_text(
 )
 
 async def balans(update: Update, context: ContextTypes.DEFAULT_TYPE):
-conn = get_db()
+   conn = get_db()
 cur = conn.cursor()
 
 cur.execute("SELECT COALESCE(SUM(summa),0) FROM transactions")
